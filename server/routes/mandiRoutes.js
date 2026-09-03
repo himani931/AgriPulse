@@ -52,5 +52,39 @@ router.post("/request-slot", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Get slot details by QR Token or Mongo ID
+router.get('/slot/:token', async (req, res) => {
+  try {
+    const slot = await SlotRequest.findOne({ 
+      $or: [{ qrToken: req.params.token }, { _id: req.params.token }] 
+    }).populate('mandiId');
+    if (!slot) return res.status(404).json({ error: 'Token not found' });
+    res.json(slot);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update slot status (e.g., Arrived, Weighment Done, Completed)
+router.patch('/slot/:id/update-status', async (req, res) => {
+  try {
+    const { status, recordedWeight, qualityGrade } = req.body;
+    const updateData = { status };
+
+    if (recordedWeight) {
+      updateData.quantityQuintals = recordedWeight;
+      updateData.totalPayable = recordedWeight * 2585; // Recalculate MSP payout
+    }
+
+    const updatedSlot = await SlotRequest.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+    res.json(updatedSlot);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

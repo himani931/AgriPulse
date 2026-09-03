@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import { MapPin, Clock, Calendar, CheckCircle } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 export default function FindMandi() {
   const [mandis, setMandis] = useState([]);
@@ -13,7 +14,8 @@ export default function FindMandi() {
     quantityQuintals: 40,
     slotTime: "11:30 AM - 12:00 PM",
   });
-
+ 
+  const navigate = useNavigate();
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/mandis")
@@ -22,22 +24,22 @@ export default function FindMandi() {
   }, []);
 
   const handleBookingSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedMandi) return alert("Please select a mandi first");
+  e.preventDefault();
+  if (!selectedMandi) return alert("Please select a mandi first");
+  
+  try {
+    const res = await axios.post('http://localhost:5000/api/mandis/request-slot', {
+      ...booking,
+      mandiId: selectedMandi._id
+    });
+    
+    // Redirect directly to the QR token screen
+    navigate(`/farmer/token/${res.data.request.qrToken}`);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/mandis/request-slot",
-        {
-          ...booking,
-          mandiId: selectedMandi._id,
-        },
-      );
-      alert(`Slot booked! QR Token: ${res.data.request.qrToken}`);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-50">
