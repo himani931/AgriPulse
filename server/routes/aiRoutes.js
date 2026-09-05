@@ -1,42 +1,61 @@
 const express = require("express");
 const router = express.Router();
+const { GoogleGenAI } = require("@google/genai");
+const agriData = require("../data/agriData");
 
-router.post("/chat", (req, res) => {
-  const { message } = req.body;
-  const lowerMsg = message.toLowerCase();
+router.post("/chat", async (req, res) => {
+  try {
+    const { prompt, language = "English" } = req.body;
 
-  let response =
-    "I'm AgriPulse Saathi. How can I help you with mandis, slot bookings, or MSP today?";
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
+    }
 
-  if (
-    lowerMsg.includes("gehun") ||
-    lowerMsg.includes("wheat") ||
-    lowerMsg.includes("msp")
-  ) {
-    response =
-      "The official Government MSP for Wheat is ₹2,585 per quintal. For 40 quintals, your total gross payout will be ₹1,02,366.";
-  } else if (
-    lowerMsg.includes("mandi") ||
-    lowerMsg.includes("nearest") ||
-    lowerMsg.includes("pass")
-  ) {
-    response =
-      "Anaj Mandi Procurement Center (18 km away) is currently available with 87 slots open and an estimated wait time of only 12 minutes.";
-  } else if (
-    lowerMsg.includes("slot") ||
-    lowerMsg.includes("book") ||
-    lowerMsg.includes("token")
-  ) {
-    response =
-      "You can request a procurement slot directly from the 'Find Mandi' tab. Once accepted by the mandi operator, your QR token (e.g. AP-MB-A78291) will be generated.";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("CRITICAL: GEMINI_API_KEY is not defined in .env");
+      return res.status(500).json({
+        error: "Server configuration error: GEMINI_API_KEY is missing in server/.env",
+      });
+    }
+
+    // Initialize SDK inside the handler so the loaded environment variable is guaranteed
+    const ai = new GoogleGenAI({ apiKey });
+
+    const systemInstruction = `
+You are "AgriPulse Saathi", an expert Indian agricultural and procurement AI advisor.
+Use the verified context below to answer farmer queries accurately.
+Respond in ${language === "Hindi" ? "Hindi (Devanagari script)" : "clear English with simple terminology"}.
+
+--- OFFICIAL AGRICULTURAL CONTEXT ---
+MSP DATA:
+${JSON.stringify(agriData?.mspRates || [], null, 2)}
+
+CENTRAL & STATE SCHEMES:
+${JSON.stringify(agriData?.governmentSchemes || [], null, 2)}
+-------------------------------------
+
+RULES:
+1. Always state exact MSP rates and scheme eligibility when asked.
+2. Keep responses concise, supportive, and formatted using bold text and bullet points.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+      },
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error("AI Route Error Details:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate AI response from Gemini.",
+    });
   }
-
-  res.json({
-    reply: response,
-    officialSource: lowerMsg.includes("msp")
-      ? "Min. of Consumer Affairs & Public Distribution (2026-27 Circular)"
-      : null,
-  });
 });
 
 module.exports = router;

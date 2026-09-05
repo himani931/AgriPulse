@@ -13,6 +13,47 @@ router.get("/", async (req, res) => {
   }
 });
 
+// POST: Register a new Mandi center
+router.post('/add-mandi', async (req, res) => {
+  try {
+    const { 
+      name, 
+      location, 
+      lat, 
+      lng, 
+      dailyCapacityQuintals, 
+      acceptedCommodities, 
+      avgWaitMinutes 
+    } = req.body;
+
+    if (!name || !location || !lat || !lng) {
+      return res.status(400).json({ error: 'Name, location, and coordinates are required.' });
+    }
+
+    const newMandi = new Mandi({
+      name,
+      location,
+      coordinates: {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      },
+      dailyCapacityQuintals: Number(dailyCapacityQuintals) || 500,
+      remainingCapacityQuintals: Number(dailyCapacityQuintals) || 500,
+      availableSlotsCount: 50,
+      avgWaitMinutes: Number(avgWaitMinutes) || 15,
+      status: 'Available',
+      acceptedCommodities: acceptedCommodities && acceptedCommodities.length > 0 
+        ? acceptedCommodities 
+        : ['Wheat', 'Mustard']
+    });
+
+    const savedMandi = await newMandi.save();
+    res.status(201).json(savedMandi);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Submit a new procurement slot request
 router.post("/request-slot", async (req, res) => {
   try {
