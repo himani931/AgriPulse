@@ -86,5 +86,16 @@ router.patch('/slot/:id/update-status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+const LedgerEvent = require('../models/LedgerEvent');
+
+// Get audit ledger events
+router.get('/ledger', async (req, res) => {
+  try {
+    const events = await LedgerEvent.find().sort({ timestamp: -1 });
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
