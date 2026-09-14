@@ -1,12 +1,19 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useEffect } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
 
 const createCustomPin = (status) => {
-  let pinColor = '#10b981';
-  if (status === 'Limited') pinColor = '#f59e0b';
-  if (status === 'Congested') pinColor = '#ef4444';
-  if (status === 'New') pinColor = '#3b82f6'; // Blue for pending/new pin
+  let pinColor = "#10b981";
+  if (status === "Limited") pinColor = "#f59e0b";
+  if (status === "Congested") pinColor = "#ef4444";
+  if (status === "New") pinColor = "#3b82f6"; // Blue for pending/new pin
 
   const svgIcon = `
     <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,18 +23,18 @@ const createCustomPin = (status) => {
   `;
 
   return L.divIcon({
-    className: 'custom-mandi-marker',
+    className: "custom-mandi-marker",
     html: svgIcon,
     iconSize: [34, 42],
     iconAnchor: [17, 42],
-    popupAnchor: [0, -38]
+    popupAnchor: [0, -38],
   });
 };
 
 function RecenterMap({ coords }) {
   const map = useMap();
   useEffect(() => {
-    if (coords) {
+    if (coords && !isNaN(coords[0]) && !isNaN(coords[1])) {
       map.flyTo(coords, 11, { duration: 1.2 });
     }
   }, [coords, map]);
@@ -39,49 +46,73 @@ function MapClickSetter({ onMapClick }) {
   useMapEvents({
     click(e) {
       if (onMapClick) {
-        onMapClick(e.latlng);
+        onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
       }
-    }
+    },
   });
   return null;
 }
 
-export default function MandiMap({ mandis, selectedMandi, onSelectMandi, onMapClick, newPinCoords }) {
-  const defaultPosition = selectedMandi?.coordinates
-    ? [selectedMandi.coordinates.lat, selectedMandi.coordinates.lng]
-    : [29.6857, 76.9905];
+export default function MandiMap({
+  mandis = [],
+  selectedMandi,
+  onSelectMandi,
+  onMapClick,
+  newPinCoords,
+}) {
+  // Safely parse center coordinates
+  const latNum = parseFloat(selectedMandi?.coordinates?.lat);
+  const lngNum = parseFloat(selectedMandi?.coordinates?.lng);
+  const defaultPosition =
+    !isNaN(latNum) && !isNaN(lngNum) ? [latNum, lngNum] : [29.6857, 76.9905]; // fallback center
+
+  // Parse new pin coordinates safely
+  const newLat = newPinCoords ? parseFloat(newPinCoords.lat) : NaN;
+  const newLng = newPinCoords ? parseFloat(newPinCoords.lng) : NaN;
+  const hasValidNewPin = !isNaN(newLat) && !isNaN(newLng);
 
   return (
     <div className="h-80 md:h-[400px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative z-0">
-      <MapContainer center={defaultPosition} zoom={9} scrollWheelZoom={false} className="h-full w-full">
+      <MapContainer
+        center={defaultPosition}
+        zoom={9}
+        scrollWheelZoom={false}
+        className="h-full w-full z-0"
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {selectedMandi?.coordinates && (
-          <RecenterMap coords={[selectedMandi.coordinates.lat, selectedMandi.coordinates.lng]} />
+        {!isNaN(latNum) && !isNaN(lngNum) && (
+          <RecenterMap coords={[latNum, lngNum]} />
         )}
 
         {onMapClick && <MapClickSetter onMapClick={onMapClick} />}
 
         {/* Render newly clicked pin preview */}
-        {newPinCoords && (
-          <Marker position={[newPinCoords.lat, newPinCoords.lng]} icon={createCustomPin('New')}>
+        {hasValidNewPin && (
+          <Marker position={[newLat, newLng]} icon={createCustomPin("New")}>
             <Popup>
-              <span className="text-xs font-semibold text-blue-700">New Mandi Target Coordinates</span>
+              <span className="text-xs font-semibold text-blue-700">
+                New Mandi Target Coordinates ({newLat.toFixed(4)},{" "}
+                {newLng.toFixed(4)})
+              </span>
             </Popup>
           </Marker>
         )}
 
         {/* Existing Mandi Pins */}
         {mandis.map((m) => {
-          if (!m.coordinates?.lat || !m.coordinates?.lng) return null;
+          const mLat = parseFloat(m.coordinates?.lat);
+          const mLng = parseFloat(m.coordinates?.lng);
+
+          if (isNaN(mLat) || isNaN(mLng)) return null;
 
           return (
             <Marker
               key={m._id || m.name}
-              position={[m.coordinates.lat, m.coordinates.lng]}
+              position={[mLat, mLng]}
               icon={createCustomPin(m.status)}
               eventHandlers={{
                 click: () => onSelectMandi && onSelectMandi(m),
@@ -89,10 +120,14 @@ export default function MandiMap({ mandis, selectedMandi, onSelectMandi, onMapCl
             >
               <Popup>
                 <div className="text-xs p-1 space-y-1">
-                  <span className="font-bold text-slate-800 text-sm block">{m.name}</span>
+                  <span className="font-bold text-slate-800 text-sm block">
+                    {m.name}
+                  </span>
                   <p className="text-slate-600">{m.location}</p>
                   <div className="flex items-center gap-2 pt-1 border-t border-slate-200 text-slate-700">
-                    <span>Slots Left: <strong>{m.availableSlotsCount || 40}</strong></span>
+                    <span>
+                      Slots Left: <strong>{m.availableSlotsCount || 40}</strong>
+                    </span>
                   </div>
                 </div>
               </Popup>

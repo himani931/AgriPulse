@@ -60,7 +60,7 @@ export default function MandiDashboard() {
         setMandis(res.data);
       }
     } catch (err) {
-      // Fallback unified list matching map queries if backend is offline
+      // Expanded raw mandi network fallback list (5 active regional hubs)
       setMandis([
         {
           _id: "mandi-azadpur",
@@ -71,6 +71,42 @@ export default function MandiDashboard() {
           coordinates: { lat: 28.7041, lng: 77.175 },
           acceptedCommodities: ["Wheat", "Mustard", "Vegetables"],
         },
+        {
+          _id: "mandi-okhla",
+          name: "Okhla Grain Yard",
+          location: "South Delhi, Delhi",
+          status: "Limited",
+          availableSlotsCount: 18,
+          coordinates: { lat: 28.5355, lng: 77.281 },
+          acceptedCommodities: ["Wheat", "Paddy", "Gram"],
+        },
+        {
+          _id: "mandi-ghaziabad",
+          name: "Sahibabad Grain Mandi",
+          location: "Ghaziabad, NCR",
+          status: "Available",
+          availableSlotsCount: 90,
+          coordinates: { lat: 28.6692, lng: 77.3878 },
+          acceptedCommodities: ["Wheat", "Mustard", "Paddy"],
+        },
+        {
+          _id: "mandi-karnal",
+          name: "Karnal Mega Grain Market",
+          location: "Karnal, Haryana",
+          status: "Congested",
+          availableSlotsCount: 5,
+          coordinates: { lat: 29.6857, lng: 76.9905 },
+          acceptedCommodities: ["Wheat", "Gram", "Mustard"],
+        },
+        {
+          _id: "mandi-sonipat",
+          name: "Sonipat APMC Yard",
+          location: "Sonipat, Haryana",
+          status: "Available",
+          availableSlotsCount: 45,
+          coordinates: { lat: 28.9931, lng: 77.0177 },
+          acceptedCommodities: ["Wheat", "Paddy"],
+        },
       ]);
     }
   };
@@ -80,10 +116,11 @@ export default function MandiDashboard() {
   }, []);
 
   const handleMapClick = (latlng) => {
-    setNewCoords({
+    const updatedCoords = {
       lat: Number(latlng.lat.toFixed(4)),
       lng: Number(latlng.lng.toFixed(4)),
-    });
+    };
+    setNewCoords(updatedCoords);
   };
 
   const handleCreateMandi = async (e) => {
@@ -220,14 +257,14 @@ export default function MandiDashboard() {
 
       {/* Add Mandi Modal */}
       {isAddMandiOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl border border-slate-200 w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b pb-3">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-200 w-full max-w-xl p-5 space-y-3 my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-2">
               <div>
-                <h3 className="font-bold text-slate-800 text-base">
+                <h3 className="font-bold text-slate-800 text-sm">
                   Register New Procurement Mandi
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] text-slate-500">
                   Click on the mini-map to pin exact GPS coordinates for
                   farmers.
                 </p>
@@ -236,28 +273,31 @@ export default function MandiDashboard() {
                 onClick={() => setIsAddMandiOpen(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-[11px] font-semibold text-slate-700">
                 Click Map to Pick Mandi GPS Location
               </span>
-              <MandiMap
-                mandis={mandis}
-                onMapClick={handleMapClick}
-                newPinCoords={newCoords}
-              />
-              <p className="text-[11px] text-emerald-700 font-mono">
+              <div className="h-44 w-full rounded-xl overflow-hidden border border-slate-200">
+                <MandiMap
+                  mandis={mandis}
+                  selectedMandi={{ coordinates: newCoords }}
+                  onMapClick={handleMapClick}
+                  newPinCoords={newCoords}
+                />
+              </div>
+              <p className="text-[10px] text-emerald-700 font-mono">
                 Selected Coordinates: {newCoords.lat}, {newCoords.lng}
               </p>
             </div>
 
-            <form onSubmit={handleCreateMandi} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleCreateMandi} className="space-y-2.5 text-xs">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-0.5 text-[11px]">
                     Mandi Name
                   </label>
                   <input
@@ -268,11 +308,11 @@ export default function MandiDashboard() {
                     onChange={(e) =>
                       setNewMandiForm({ ...newMandiForm, name: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-0.5 text-[11px]">
                     District / Location
                   </label>
                   <input
@@ -286,15 +326,15 @@ export default function MandiDashboard() {
                         location: e.target.value,
                       })
                     }
-                    className="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Daily Cap (Quintals)
+                  <label className="block font-semibold text-slate-700 mb-0.5 text-[11px]">
+                    Daily Cap (Qtl)
                   </label>
                   <input
                     type="number"
@@ -306,11 +346,11 @@ export default function MandiDashboard() {
                         dailyCapacityQuintals: e.target.value,
                       })
                     }
-                    className="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-0.5 text-[11px]">
                     Avg Wait (Mins)
                   </label>
                   <input
@@ -322,11 +362,11 @@ export default function MandiDashboard() {
                         avgWaitMinutes: e.target.value,
                       })
                     }
-                    className="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-0.5 text-[11px]">
                     Accepted Crops
                   </label>
                   <input
@@ -339,22 +379,22 @@ export default function MandiDashboard() {
                         acceptedCommodities: e.target.value,
                       })
                     }
-                    className="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t">
+              <div className="flex justify-end gap-2 pt-2 border-t">
                 <button
                   type="button"
                   onClick={() => setIsAddMandiOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-semibold cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 font-semibold cursor-pointer text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white font-bold cursor-pointer text-xs"
                 >
                   Save & Publish to Map
                 </button>
