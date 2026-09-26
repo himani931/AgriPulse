@@ -1,8 +1,8 @@
-# AgriPulse
+# KrishiParakh
 
 > **Smart Procurement. Transparent MSP. Empowered Farmers.**
 
-AgriPulse is a digital agricultural procurement and yard-management platform built for the Smart India Hackathon (SIH). It eliminates long mandi queues, automates slot scheduling, provides live gate-to-scale tracking, guarantees transparent MSP price calculations, and maintains an immutable audit ledger for dispute-free settlements.
+KrishiParakh is a digital agricultural procurement and yard-management platform built for the Smart India Hackathon (SIH). It eliminates long mandi queues, automates slot scheduling, provides live gate-to-scale tracking, guarantees transparent MSP price calculations, and maintains an immutable audit ledger for dispute-free settlements.
 
 ---
 
@@ -13,7 +13,7 @@ AgriPulse is a digital agricultural procurement and yard-management platform bui
 * **Live Procurement Lifecycle Tracking**: Step-by-step progress tracking vehicle arrival, gate scan, weighbridge scale entry, and settlement confirmation.
 * **Mandi Operator Portal**: Dedicated interface for yard officials to scan arrivals, record certified scale weights, and log moisture and quality grades.
 * **Instant MSP Settlements & PDF Invoices**: Automatic price calculations based on official government MSP standards with browser-level print and PDF receipt generation.
-* **AgriPulse Saathi (AI Assistant)**: Bilingual (Hindi/English) voice and text-enabled assistant answering questions about MSP rates, documentation, and queue status.
+* **KrishiParakh Saathi (AI Assistant)**: Bilingual (Hindi/English) voice and text-enabled assistant answering questions about MSP rates, documentation, and queue status.
 * **Tamper-Evident Audit Ledger**: Searchable, append-only event log capturing every lifecycle transition with proof hashes for dispute resolution.
 
 ---
@@ -40,7 +40,7 @@ AgriPulse is a digital agricultural procurement and yard-management platform bui
 ## Directory Structure
 
 ```text
-AgriPulse/
+KrishiParakh/
 ├── client/                     # Frontend React Application
 │   ├── public/                 # Static assets
 │   ├── src/
